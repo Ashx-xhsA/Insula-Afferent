@@ -1,12 +1,16 @@
 // Decay Engine v1 — linear decay, independent rate per stat
 
+const { STAT_MIN, STAT_MAX } = require('../config/constants');
+
+const MS_PER_HOUR = 60 * 60 * 1000;
+
 /**
  * Compute the decayed value for a single stat.
  * @param {object} params
- * @param {number} params.currentValue - Current stat value (can exceed 100 due to buffs)
- * @param {number} params.decayCycleHours - Hours for stat to decay from 100 to 0
+ * @param {number} params.currentValue - Current stat value (can exceed STAT_MAX due to buffs)
+ * @param {number} params.decayCycleHours - Hours for stat to decay from STAT_MAX to STAT_MIN
  * @param {number} params.elapsedMs - Milliseconds elapsed since last update
- * @returns {number} New stat value, clamped to minimum of 0
+ * @returns {number} New stat value, clamped to minimum of STAT_MIN
  */
 function computeDecayedValue({ currentValue, decayCycleHours, elapsedMs }) {
   if (decayCycleHours <= 0) {
@@ -16,10 +20,10 @@ function computeDecayedValue({ currentValue, decayCycleHours, elapsedMs }) {
   // Negative elapsed time (clock skew) treated as 0
   const effectiveElapsedMs = Math.max(0, elapsedMs);
 
-  const ratePerMs = 100 / (decayCycleHours * 60 * 60 * 1000);
+  const ratePerMs = STAT_MAX / (decayCycleHours * MS_PER_HOUR);
   const decayed = currentValue - ratePerMs * effectiveElapsedMs;
 
-  return Math.max(0, decayed);
+  return Math.max(STAT_MIN, decayed);
 }
 
 /**
